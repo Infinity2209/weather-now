@@ -36,14 +36,6 @@ Provide real-time, accurate weather information for any city — simple, fast, a
          │     Open-Meteo API          │
          │  (3rd-party weather API)    │
          └─────────────────────────────┘
-                        │
-                        ▼
-         ┌─────────────────────────────┐
-         │        Database (optional)  │
-         │ MongoDB / Redis / SQLite    │
-         │ - Cache city weather data   │
-         │ - Store search history      │
-         └─────────────────────────────┘
 ```
 
 ---
