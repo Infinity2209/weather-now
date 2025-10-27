@@ -146,8 +146,6 @@ Optimize response speed and reduce API calls.
 ```
 weather-now/
 ├── client/                  # React Frontend (Netlify)
-│   ├── netlify/
-│   │   └── functions/       # (Legacy - can be removed)
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
