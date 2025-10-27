@@ -13,7 +13,11 @@ router.get('/weather', async (req, res) => {
     try {
         // Step 1: Geocode city to get latitude and longitude using Nominatim
         const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=1`;
-        const geocodeResponse = await axios.get(geocodeUrl);
+        const geocodeResponse = await axios.get(geocodeUrl, {
+            headers: {
+                'User-Agent': 'WeatherNow-App/1.0'
+            }
+        });
         const geocodeData = geocodeResponse.data;
 
         if (!geocodeData || geocodeData.length === 0) {
@@ -24,7 +28,11 @@ router.get('/weather', async (req, res) => {
 
         // Step 2: Fetch weather data from Open-Meteo API
         const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,windspeed_10m`;
-        const weatherResponse = await axios.get(weatherUrl);
+        const weatherResponse = await axios.get(weatherUrl, {
+            headers: {
+                'User-Agent': 'WeatherNow-App/1.0'
+            }
+        });
         const weatherData = weatherResponse.data;
 
         // Step 3: Format and return the response
