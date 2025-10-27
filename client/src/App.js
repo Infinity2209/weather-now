@@ -12,7 +12,8 @@ function App() {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`/api/weather?city=${city}`);
+            const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+            const response = await fetch(`${apiBaseUrl}/api/weather?city=${city}`);
             if (!response.ok) throw new Error('City not found');
             const data = await response.json();
             setWeather(data);
