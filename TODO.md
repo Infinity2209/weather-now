@@ -1,31 +1,17 @@
-# Geolocation Feature Implementation Plan
+# Weather Now Fix: Unable to fetch weather data
 
-## Overview
-Add current location weather using browser Geolocation API + server support for lat/lon params.
+## Steps to Complete:
+- [x] 1. Create client/.env with REACT_APP_API_BASE_URL=http://localhost:5000
+- [ ] 2. Install server dependencies: cd server && npm install
+- [ ] 3. Install client dependencies if needed: cd client && npm install
+- [ ] 4. Start backend server: cd server && npm start
+- [ ] 5. Start frontend dev server: cd client && npm start
+- [ ] 6. Test app at http://localhost:3000: Search 'London', Use Current Location
+- [ ] 7. Verify no errors, check browser console/network tab
+- [ ] 8. [Optional] Improve error messages in App.js
 
-## Steps (Approved Plan)
+**Note**: Deployed Render backend has 400 errors (possibly missing lat/lon parse or API blocks). Use local for dev. Progress will be updated.
 
-### 1. ✅ Update server/routes/weather.js
-- Add lat/lon param support with reverse geocoding for city name.
 
-### 2. ✅ Update client/src/components/Search.js
-- Add "📍 Current Location" button.
 
-### 3. ✅ Update client/src/App.js
-- Refactor fetchWeather for city OR {lat,lon}.
-- Add geolocation handler passed to Search.
-
-### 4. 🔄 Update client/src/components/WeatherCard.js (optional)
-- Display lat/lon if present.
-
-### 5. 🔄 Test locally
-- Start server: `cd server &amp;&amp; npm run dev`
-- Start client: `cd client &amp;&amp; npm start`
-- Test: City search (unchanged), Current Location (allow → weather shows).
-
-### 6. 🔄 Deploy reminder
-- Client auto-deploys to Netlify.
-- Server to Render.
-
-**Progress: Starting step 1...**
 
