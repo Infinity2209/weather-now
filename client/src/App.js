@@ -13,7 +13,7 @@ function App() {
         setError(null);
         let url = '';
         let status = null;
-        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+        const apiBaseUrl = 'http://localhost:5000'; // Force local dev (change for deploy)
         console.log('Using API base URL:', apiBaseUrl);
         try {
             if (typeof searchInput === 'object' && searchInput.lat && searchInput.lon) {

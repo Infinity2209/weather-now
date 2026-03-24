@@ -2,6 +2,7 @@
 
 ## Steps to Complete:
 - [x] 1. Create client/.env with REACT_APP_API_BASE_URL=http://localhost:5000
+- [x] 2. Updated App.js: Force local URL + debug logs + better errors
 - [ ] 2. Install server dependencies: cd server && npm install
 - [ ] 3. Install client dependencies if needed: cd client && npm install
 - [ ] 4. Start backend server: cd server && npm start
