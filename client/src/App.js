@@ -11,9 +11,11 @@ function App() {
     const fetchWeather = async (searchInput) => {
         setLoading(true);
         setError(null);
+        let url = '';
+        let status = null;
+        const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+        console.log('Using API base URL:', apiBaseUrl);
         try {
-            const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
-            let url;
             if (typeof searchInput === 'object' && searchInput.lat && searchInput.lon) {
                 // Current location
                 url = `${apiBaseUrl}/api/weather?lat=${searchInput.lat.toFixed(4)}&lon=${searchInput.lon.toFixed(4)}`;
@@ -22,19 +24,26 @@ function App() {
                 const city = typeof searchInput === 'string' ? searchInput : 'Unknown';
                 url = `${apiBaseUrl}/api/weather?city=${encodeURIComponent(city)}`;
             }
+            console.log('Fetching:', url);
             const response = await fetch(url);
+            status = response.status;
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Weather data not found');
+                throw new Error(errorData.error || `HTTP ${response.status}: Weather data not found`);
             }
             const data = await response.json();
             setWeather(data);
         } catch (err) {
+            console.error('Weather fetch failed:', { url, status, error: err.message });
             let errorMsg = 'Unable to fetch weather data. Please try again.';
             if (err.message.includes('denied') || err.message.includes('Location')) {
                 errorMsg = 'Location access denied. Please enable location services and try again.';
             } else if (err.message.includes('City not found')) {
                 errorMsg = 'City not found. Please check the name and try again.';
+            } else if (err.message.includes('Failed to fetch') || status === 0) {
+                errorMsg = 'Backend not reachable. Run: cd server && npm start, then restart client.';
+            } else if (status === 500) {
+                errorMsg = 'Backend server error. Check server logs.';
             }
             setError(errorMsg);
             setWeather(null);
