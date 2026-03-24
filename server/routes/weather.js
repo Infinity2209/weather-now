@@ -2,32 +2,50 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// GET /api/weather?city=CityName
+// GET /api/weather?city=CityName or ?lat=52.52&lon=13.405
 router.get('/weather', async (req, res) => {
-    const { city } = req.query;
+    const { city, lat, lon } = req.query;
 
-    if (!city) {
-        return res.status(400).json({ error: 'City parameter is required' });
+    if (!city && (!lat || !lon)) {
+        return res.status(400).json({ error: 'Either city or lat+lon parameters are required' });
     }
 
     try {
-        // Step 1: Geocode city to get latitude and longitude using Nominatim
-        const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=1`;
-        const geocodeResponse = await axios.get(geocodeUrl, {
-            headers: {
-                'User-Agent': 'WeatherNow-App/1.0'
-            }
-        });
-        const geocodeData = geocodeResponse.data;
+        let useLat = parseFloat(lat);
+        let useLon = parseFloat(lon);
+        let displayCity;
 
-        if (!geocodeData || geocodeData.length === 0) {
-            return res.status(404).json({ error: 'City not found' });
+        if (lat && lon) {
+            // Direct lat/lon: reverse geocode for city name
+            const reverseUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`;
+            const reverseResponse = await axios.get(reverseUrl, {
+                headers: {
+                    'User-Agent': 'WeatherNow-App/1.0'
+                }
+            });
+            const reverseData = reverseResponse.data;
+            displayCity = reverseData.display_name || `Lat ${lat}, Lon ${lon}`;
+        } else {
+            // City name: forward geocode
+            const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=1`;
+            const geocodeResponse = await axios.get(geocodeUrl, {
+                headers: {
+                    'User-Agent': 'WeatherNow-App/1.0'
+                }
+            });
+            const geocodeData = geocodeResponse.data;
+
+            if (!geocodeData || geocodeData.length === 0) {
+                return res.status(404).json({ error: 'City not found' });
+            }
+
+            useLat = parseFloat(geocodeData[0].lat);
+            useLon = parseFloat(geocodeData[0].lon);
+            displayCity = city;
         }
 
-        const { lat, lon } = geocodeData[0];
-
-        // Step 2: Fetch weather data from Open-Meteo API
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,windspeed_10m`;
+        // Fetch weather from Open-Meteo API
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${useLat}&longitude=${useLon}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,windspeed_10m`;
         const weatherResponse = await axios.get(weatherUrl, {
             headers: {
                 'User-Agent': 'WeatherNow-App/1.0'
@@ -35,17 +53,16 @@ router.get('/weather', async (req, res) => {
         });
         const weatherData = weatherResponse.data;
 
-        // Step 3: Format and return the response
+        // Format response
         const currentWeather = weatherData.current_weather;
         const response = {
-            city: city,
-            latitude: lat,
-            longitude: lon,
+            city: displayCity,
+            latitude: useLat,
+            longitude: useLon,
             temperature: currentWeather.temperature,
             windspeed: currentWeather.windspeed,
             weathercode: currentWeather.weathercode,
             time: currentWeather.time,
-            // Additional data from hourly if available
             humidity: weatherData.hourly?.relative_humidity_2m?.[0] || null
         };
 

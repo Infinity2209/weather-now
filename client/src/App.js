@@ -1,28 +1,84 @@
 import React, { useState } from 'react';
 import { Cloud } from 'lucide-react';
 import Search from './components/Search';
-import WeatherCard from './components/WeatherCard'
+import WeatherCard from './components/WeatherCard';
 
 function App() {
     const [weather, setWeather] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const fetchWeather = async (city) => {
+    const fetchWeather = async (searchInput) => {
         setLoading(true);
         setError(null);
         try {
             const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
-            const response = await fetch(`${apiBaseUrl}/api/weather?city=${city}`);
-            if (!response.ok) throw new Error('City not found');
+            let url;
+            if (typeof searchInput === 'object' && searchInput.lat && searchInput.lon) {
+                // Current location
+                url = `${apiBaseUrl}/api/weather?lat=${searchInput.lat.toFixed(4)}&lon=${searchInput.lon.toFixed(4)}`;
+            } else {
+                // City name
+                const city = typeof searchInput === 'string' ? searchInput : 'Unknown';
+                url = `${apiBaseUrl}/api/weather?city=${encodeURIComponent(city)}`;
+            }
+            const response = await fetch(url);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Weather data not found');
+            }
             const data = await response.json();
             setWeather(data);
         } catch (err) {
-            setError('Unable to find weather data. Please check the city name and try again.');
+            let errorMsg = 'Unable to fetch weather data. Please try again.';
+            if (err.message.includes('denied') || err.message.includes('Location')) {
+                errorMsg = 'Location access denied. Please enable location services and try again.';
+            } else if (err.message.includes('City not found')) {
+                errorMsg = 'City not found. Please check the name and try again.';
+            }
+            setError(errorMsg);
             setWeather(null);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            setError('Geolocation is not supported by this browser.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                fetchWeather({ lat: latitude, lon: longitude });
+            },
+            (error) => {
+                console.error('Geolocation error:', error);
+                let errorMsg = 'Failed to get location. ';
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg += 'Location access denied.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg += 'Location information unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg += 'Location request timed out.';
+                        break;
+                    default:
+                        errorMsg += 'Unknown error occurred.';
+                        break;
+                }
+                setError(errorMsg);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 60000
+            }
+        );
     };
 
     return (
@@ -38,7 +94,7 @@ function App() {
                         Weather Now
                     </h1>
                     
-                    <Search onSearch={fetchWeather} />
+                    <Search onSearch={fetchWeather} onCurrentLocation={handleCurrentLocation} />
 
                     {loading && (
                         <div className="flex flex-col items-center justify-center py-12">

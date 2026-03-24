@@ -104,6 +104,11 @@ function WeatherCard({ weather }) {
                 <div className="text-center mb-6">
                     <h2 className="text-3xl font-bold text-gray-800 mb-1">{city}</h2>
                     <p className="text-gray-600 capitalize">{weather_description}</p>
+                    {weather.latitude && weather.longitude && (
+                        <p className="text-sm text-gray-500 mt-1">
+                            📍 {weather.latitude.toFixed(2)}°, {weather.longitude.toFixed(2)}°
+                        </p>
+                    )}
                 </div>
 
                 <div className="flex items-center justify-center mb-6">
